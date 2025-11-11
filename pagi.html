@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Choose wisely</title>
+<style>
+  .root{
+    --bg: #efecff;
+    --card-bg: #800080(255,255,255,0.95);
+    --accent: purple;
+    --text: white;
+    --muted: #6b6b6b;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{
+    background: var(--bg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:25px;
+  }
+  .card{
+    width: min(680px, 92vw);
+    background: var(--card-bg);
+    border-radius:100px;
+    padding:100px;
+    text-align:center;
+    box-shadow: rgba(65, 3, 237, 0.854) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+  }
+  .avatar{
+    width: 170px;
+    height: 170px;
+    margin: 0 auto 18px;
+    background: white;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    overflow:hidden;
+  }
+  .avatar img{max-width:100%;height:auto;display:block;}
+
+  h1{
+    margin:10px 0 6px;
+    font-size:2rem;
+    color:var(--text);
+  }
+  .lead{ 
+    margin:0 0 20px;
+    color:var(--muted);
+    font-size:0.95rem;
+  }
+  .actions{
+    position: absolute;
+    display:flex;
+    gap: 10px;
+    justify-content:center;
+    margin-top: 20px;
+    position:relative; 
+    height: 72px;
+    align-items:center;
+    left: 10px;
+  }
+
+  button{
+    border:0;
+    padding:12px 22px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.863);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+    background: rgb(255, 255, 255);
+    color: #ffffff;
+
+  }
+  button:active{ transform: translateY(2px) }
+  .yes{
+    background: linear-gradient(180deg,#800080,#800080);
+  }
+  .no{
+    background: linear-gradient(180deg,#800080,#800080);
+  }
+  .movable{
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+    transition: transform 260ms cubic-bezier(.2,.9,.26,1);
+  }
+  @media (max-width:420px){
+    .actions{flex-direction:column; height: 120px;}
+    .movable{position:static; transform:none; transition:none;}
+    button{width:80%;}
+  }
+  .toast{
+    display:none;
+    margin-top:16px;
+    font-size:0.95rem;
+    color: #ffffff;
+    background:#800080;
+    padding:10px 14px;
+    border-radius:8px;
+    width:min(420px,92%);
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .toast.show{display:block;}
+</style>
+</head>
+<body>
+
+  <main class="card" id="card">
+    <div class="avatar">
+      <img src="images/kitty.jpg" alt="crying cat">
+    </div>
+
+    <h1>Do u hate me?</h1>
+    <p class="lead">If u click "YES" kitty gonna be sad😿</p>
+
+    <div class="actions" id="actions">
+      <button class="yes" id="yesBtn" style="position:relative; z-index:2;">Yes</button>
+      <button class="no movable" id="noBtn" aria-label="No button">No</button>
+    </div>
+
+    <div class="toast" id="toast">If u click "YES" kitty gonna be sad😿</div>
+  </main>
+
+<script>
+(function(){
+  const actions = document.getElementById('actions');
+  const noBtn = document.getElementById('noBtn');
+  const yesBtn = document.getElementById('yesBtn');
+  const toast = document.getElementById('toast');
+  const card = document.getElementById('card');
+
+  function setInitialNoPosition(){
+    noBtn.style.left = '62%';
+    noBtn.style.top = '0px';
+    noBtn.style.transform = 'translate(-50%, 0)';
+  }
+  setInitialNoPosition();
+  function randomPositionWithinActions(){
+    const aRect = actions.getBoundingClientRect();
+    const nRect = noBtn.getBoundingClientRect();
+    const padding = 8;
+    const maxX = aRect.width - nRect.width - padding;
+    const maxY = aRect.height - nRect.height - padding;
+    let x = Math.random() * maxX + padding;
+    let y = Math.random() * maxY + padding;
+    return { x, y };
+  }
+  function moveNoTo({x,y}){
+    noBtn.style.left = x + 'px';
+    noBtn.style.top = y + 'px';
+    noBtn.style.transform = 'translate(0,0)';
+  }
+
+  noBtn.addEventListener('mouseenter', () => {
+    let attempt = 0;
+    let pos;
+    do {
+      pos = randomPositionWithinActions();
+      attempt++;
+      if (attempt > 8) break;
+      const yesRect = yesBtn.getBoundingClientRect();
+      const actionsRect = actions.getBoundingClientRect();
+      const yesX = yesRect.left - actionsRect.left;
+      const yesY = yesRect.top - actionsRect.top;
+      const dist = Math.hypot( pos.x - yesX, pos.y - yesY );
+      if (dist > 80) break;
+    } while(true);
+    moveNoTo(pos);
+  });
+  noBtn.addEventListener('focus', () => {
+    const pos = randomPositionWithinActions();
+    moveNoTo(pos);
+  });
+  noBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    setInitialNoPosition();
+    toast.textContent = "Thank you for loving kitty😽, click YES to proceed to the next page (Code isnt coding)";
+    toast.classList.add('show');
+    setTimeout(()=> toast.classList.remove('show'), 9000);
+  });
+  yesBtn.addEventListener('click', () => {
+    toast.textContent = "Why u hate me😿, jk. Ahh ragebait final boss";
+    toast.classList.add('show');
+     setTimeout(()=> {
+      toast.classList.remove('show');
+      window.location.href = "page2.html"; 
+    }, 6000);
+  });
+  window.addEventListener('resize', () => {
+    setTimeout(() => {
+      setInitialNoPosition();
+    }, 100);
+  });
+
+})();
+</script>
+</body>
+</html>
